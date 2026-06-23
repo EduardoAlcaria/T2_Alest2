@@ -1,0 +1,26 @@
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsmath}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  frame=single,
+  breaklines=true,
+  tabsize=2,
+  showstringspaces=false,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{orange!80!black}
+}
+
+% Permite marcar nomes de funcoes e tipos como palavras-chave destacadas
+% no lstlisting. Uso: \addfunctions{f1,f2} e \addtypes{t1,t2} antes do bloco.
+\newcommand{\addfunctions}[1]{%
+  \lstset{emph={#1}, emphstyle=\bfseries}%
+}
+\newcommand{\addtypes}[1]{%
+  \lstset{emph={[2]#1}, emphstyle={[2]\color{teal}\bfseries}}%
+}

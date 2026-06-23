@@ -1,0 +1,636 @@
+%% LyX 2.2.1 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[12pt,brazil,a4paper]{article}
+%\usepackage{sbc-template}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
+%\usepackage[linesnumbered,ruled,vlined,portuguese]{algorithm2e}
+\input{algo}
+\RequirePackage{times}
+\makeatletter
+
+\newenvironment{code}
+{\par\begin{list}{}{
+\setlength{\rightmargin}{\leftmargin}
+\setlength{\listparindent}{0pt}% needed for AMS classes
+\raggedright
+\setlength{\itemsep}{0pt}
+\setlength{\parsep}{0pt}
+\normalfont\ttfamily}%
+ \item[]}
+{\end{list}}
+
+\setlength{\jot}{0.25\jot}
+\usepackage{latexsym}
+
+\makeatother
+
+\usepackage{babel}
+\begin{document}
+
+\title{Escrevendo seu relatório}
+
+\author{João B. Oliveira\thanks{\texttt{oliveira@inf.pucrs.br}}, Marcelo Cohen\thanks{\texttt{marcelo.cohen@pucrs.br}}\\
+Escola Politécnica — PUCRS}
+
+\date{\today}
+\maketitle
+\begin{abstract}
+\emph{O abstract ou resumo deve dar uma descrição curta (um ou dois
+parágrafos) do que será tratado no texto, para que o leitor possa
+decidir se o assunto interessa ou não. Note também que a data está
+em português, com o mês em minúscula. Isso é a língua portuguesa e
+pode ser que seu editor de texto não saiba disso.}
+
+Este artigo descreve alternativas de solução para o primeiro problema
+proposto na disciplina de \ldots no semestre \ldots, que trata da
+representação dos inteiros de 2 até 100 na forma $2^{i}\div3^{j}$.
+São apresentadas três possibilidades de solução para o problema e
+sua eficiência é analisada. Em seguida as representações obtidas para
+os números são mostradas.
+
+\emph{Note que seu trabalho pode pedir mais que isso! Você pode ter
+que oferecer exemplos de uso, casos de teste, e outros itens que não
+foram pedidos neste trabalho!}
+\end{abstract}
+
+\section*{Introdução}
+
+\emph{O papel da introdução é descrever o problema que vai ser resolvido,
+de onde ele veio, qual o seu contexto e se já sabemos algo a respeito
+dele (se alguém já tentou resolver, etc.) e depois descrever os passos
+que serão apresentados para a resolução, mostrando uma espécie de
+roteiro do que vem a seguir. Não esqueça de que o leitor deve entender
+o problema pra entender sua solução!}
+
+Dentro do escopo da disciplina de \ldots, o primeiro problema de
+\ldots pode ser resumido assim: dado um número $a=1$, outros números
+podem ser produzidos seguindo-se as duas regras:
+\begin{enumerate}
+\item Multiplicando por 2 um número já produzido.
+\item Dividindo por 3 um número já produzido e descartando a parte fracionária
+(divisão inteira).
+\end{enumerate}
+Por exemplo, seguindo estas regras temos que
+\[
+10=1\times2\times2\times2\times2\times2\div3=32\div3.
+\]
+
+O problema a ser resolvido é determinar a representação de todos os
+inteiros de 2 até 100 seguindo apenas estas regras. Para a saída,
+os números devem ser apresentados em ordem crescente, apresentando-se
+quantas vezes tivemos de usar cada regra. Segundo o enunciado do trabalho,
+a linha da saída para 10 seria a seguinte:
+
+\begin{center}
+10~=~2\textasciicircum{}5~/~3\textasciicircum{}1
+\par\end{center}
+
+O enunciado também informa que os resultados possíveis não são únicos,
+muitos números podem ser obtidos em mais de uma forma, portanto deve-se
+dar preferência aos expoentes menores. Algumas regras e considerações
+adicionais são:
+\begin{enumerate}
+\item Não é permitido usar inteiros especiais, como \texttt{long}, \texttt{BigInt}
+e outros inteiros extra-longos. O maior tipo inteiro deve ter 32 bits.
+\item É permitido usar \texttt{float,} \texttt{real} e \texttt{double} em
+tarefas auxiliares, mas não é permitido calcular potências com eles.
+\item Se um número não precisa ser dividido por 3, pode-se apresentar \texttt{3\textasciicircum{}0}
+na saída.
+\end{enumerate}
+Para resolver o problema proposto, analisaremos três possíveis alternativas
+de solução, bem como suas características, optando por uma soluçao
+bastante eficiente ainda que pouco intuitiva. Em seguida os resultados
+obtidos serão apresentados, bem como as conclusões obtidas no decorrer
+do trabalho.
+
+\emph{Talvez você tenha percebido que este texto é todo escrito no
+plural: fizemos, faremos, analisaremos, apresentaremos.} \textbf{\emph{Nunca}}
+\emph{usamos o singular (fiz, analisei, pensei, etc), mesmo que você
+esteja trabalhando sozinho. Outra possibilidade, melhor ainda, é usar
+termos passivos: faz-se, analiza-se, demonstra-se, etc.}
+
+\emph{O texto é em espaço simples, pois é muito chato ler um trabalho
+em espaço maior: fica evidente que quem escreveu precisava encher
+papel. Sobre o tamanho de letra, recomenda-se 10, 11 ou 12. Este texto
+foi originalmente feito em tamanho 12 porque iria ser reduzido.}
+
+\emph{Sobre o português: não existe espaço antes de uma vírgula, depois
+de dois pontos sempre vêm minúscula e coloca-se espaço em branco antes
+de abrir um par de parênteses. Por dentro dos parênteses não se coloca
+espaço, o texto vem colado neles. Procure estes detalhes no texto!}
+
+\section*{Primeira solução}
+
+Depois de considerar o problema, podemos perceber que o valor inicial
+$a=1$ serve apenas para fornecer um número inicial sobre o qual podem
+ser aplicadas as regras para gerar outros números, e portanto seu
+valor não tem importância especial. Com esta constatação, e sabendo
+que em um inteiro de 32 bits podemos armazenar números até $2^{31}$
+ou até $3^{20}$ (obtivemos estes dados através de testes), podemos
+propor uma solução bastante simples: bastaria criar frações $2^{i}/3^{j}$
+com todas as possibilidades de expoentes para $2^{i}$ (ou seja, $0\leq i\leq31$)
+e para $3^{j}$ (ou seja, $0\leq j\leq20$), verificando quais números
+são gerados. O total de números a serem testados é de apenas $32*21=672$,
+portanto o algoritmo deve ser executado com grande velocidade. Um
+algoritmo implementando esta idéia seria parecido com este:
+
+% Exemplo usando algorithm2e:
+% https://www.sharelatex.com/learn/algorithms
+%\begin{algorithm}[H]
+%\SetAlgoLined
+% \Para{$i \gets 1$ até $100$}{$tab[i] \gets FALSE$}
+% \Para{$i \gets 1$ até $100$}{
+%   \Para{$j \gets 0$ até $20$} {
+%     $num \gets \frac{2^{i}}{3^{j}}$\;
+%     \Se{$num <= 100$ and $tab[num] = FALSE$} {
+%     $tab[num].achei =TRUE$\;
+%     $tab[num].exp2 =i$\;
+%     $tab[num].exp3 =j$\;
+%     }
+%  }
+% }
+% \caption{Como escrever algoritmos}
+% \label{algo:exemplo}
+%\end{algorithm}
+
+\addfunctions{Algoritmo1}
+\addtypes{registro,int,real}
+
+\begin{lstlisting}
+registro tab[100] {
+  int achei, int exp2, int exp3
+}
+
+procedimento Algoritmo1
+  para i := 1 até 100 faça
+    tab[i] := FALSE
+  fim
+  para i := 1 até 100 faça
+    para j := 0 até 20 faça
+      num := ${2^i}/{3^j}$
+      se num >= 100 e tab[num] = FALSE então
+        tab[num].achei := TRUE
+        tab[num].exp2 := i
+        tab[num].exp3 := j
+      fim
+    fim
+  fim
+fim
+\end{lstlisting}
+
+Foi criada uma tabela para manter os resultados encontrados, e a cada
+resultado encontrado seus expoentes são armazenados. Ao final basta
+imprimir a tabela, colocando-a no formato adequado de saída (este
+algoritmo é simples e não será mostrado aqui).
+
+Também é interessante perceber que a solução apresentada até o momento
+acha os menores expoentes possíveis, mas precisa manter o controle
+de que números já foram encontrados, para não escrever expoentes maiores
+sobre valores já armazenados. Uma maneira muito simples de descartar
+este tipo de controle é fazendo o loop externo \textbf{decrescente},
+garantindo assim que os menores expoentes serão encontrados por último,
+e permitindo a escrita sobre valores já encontrados. Esta solução
+seria:
+
+\addfunctions{Algoritmo2}
+
+\begin{lstlisting}
+registro tab[100] {
+  int exp2, int exp3
+}
+
+procedimento Algoritmo2
+  para i := 31 até 0 faça
+    para j := 0 até 20 faça
+      num := ${2^i}/{3^j}$
+      se num <= 100 então
+        tab[num].exp2 := i
+        tab[num].exp3 := j
+      fim
+    fim
+  fim
+fim
+\end{lstlisting}
+
+Esta idéia é bastante simples e eficiente, porém um teste mostra que
+ela acha apenas 53 dos 99 números desejados. Com isto podemos concluir
+que os outros 46 valores devem ser obtidos com expoentes maiores,
+e os números envolvidos não podem ser representados em inteiros de
+32 bits.
+
+\emph{Note que esta seção dá uma idéia inicial, analisa-a de forma
+rápida e diz porque ela não serve, também de forma rápida, sem perder
+o tempo do leitor com papo furado. Essa precisão e detalhe são sinais
+de um trabalho onde vem coisas mais interessantes mais tarde. Veja
+que não foi usada uma linguagem de programação com todos os detalhezinhos!
+Os algoritmos estão em uma linguagem simplificada, que permite que
+se entenda rapidamente o que deve ser feito, sem excesso de detalhes
+inúteis.}
+
+\emph{Perceba também que o código não é cheio de explicações óbvias
+e inúteis (esta linha incrementa o contador, esta linha calcula o
+número), mas é clara o bastante para que outra pessoa entenda o que
+é feito e reproduza o algoritmo em sua linguagem preferida. Uma falha:
+terminamos dizendo que achamos 53 dos 99 números, mas sem dizer quais
+foram nem falar do tempo necessário para encontrá-los. }\textbf{\emph{Moral}}\emph{:
+quando terminar de falar de uma solução, apresente os resultados,
+comente o tempo e as (possíveis) falhas!!}
+
+\section*{Segunda solução}
+
+Uma vez que a alternativa mais simples falha em quase metade dos casos,
+optamos por desenvolver uma abordagem mais cuidadosa, experimentando
+um truque bastante simples: se já tivermos os expoentes para certos
+números (obtidos, por exemplo, com o método anterior), podemos criar
+novos números a partir destes. Por exemplo, se sabemos que $2=2^{1}\div3^{0}$
+e que $3=2^{5}\div3^{2}$, então podemos tentar produzir 6 através
+da combinação das duas representações: $6=2*3=2^{1+5}\div3^{0+2}=2^{6}\div3^{2}.$
+
+Infelizmente, conferindo o resultado descobrimos que $2^{6}\div3^{2}=64/9=7.1111\ldots$
+e portanto não obtemos 6, e sim 7. Tabulando os resultados e prestando
+atenção nos valores, temos
+
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tabular}{|c|c|l|l|}
+\hline 
+Valor truncado & Fórmula & Valor exato & Excesso\\
+\hline 
+2 & $2^{1}\div3^{0}$ & 2 & 0\\
+\hline 
+3 & $2^{5}\div3^{2}$ & 3.5555\ldots{} & 0.5555\ldots{}\\
+\hline 
+6 & $2^{6}\div3^{2}$ & 7.1111\ldots{} & 1.1111\ldots{}\\
+\hline 
+\end{tabular}
+\par\end{center}
+
+\vspace{0.3cm}
+
+O fenômeno parece bastante simples: como a representação de 3 carrega
+consigo um erro (excesso) de 0.5555\ldots{}, ao multiplicar 3 por
+2 o erro também dobra, fazendo com que o valor obtido seja maior do
+que 6. Como se pode ver na tabela, o erro para 6 é de 1.1111\ldots{},
+exatamente o dobro de 0.5555\ldots{}.
+
+Desta maneira, podemos perceber que um mecanismo simples de geração
+de novos números a partir de outros que já são conhecidos teria, no
+mínimo, os seguintes problemas:
+\begin{enumerate}
+\item São necessários valores iniciais que são usados como ``sementes''.
+Estes valores iniciais podem ser obtidos com o método anterior, por
+exemplo.
+\item Os números sendo procurados devem ser decompostos para que se saiba
+que outros números devem ser multiplicados para obtê-los, da mesma
+forma que constatamos que 6 poderia ser produzido com 2 e 3. Esta
+decomposição é relativamente trabalhosa, e envolve números primos
+e vários tipos de testes.
+\item É preciso conhecer a representação para os números primos, pois estes
+não podem ser obtidos multiplicando-se outros valores. Por exemplo,
+o valor 19 não poderá ser decomposto e sua representação tem que ser
+descoberta de forma independente.
+\item É preciso ter controle do erro sendo transmitido entre os números,
+a fim de garantir que estamos chegando aos números corretos.
+\end{enumerate}
+Por todos estes motivos optamos por não desenvolver esta solução,
+mas com o raciocínio feito até o momento podemos elaborar uma solução
+aparentemente mais complexa, mas que se revela mais simples quando
+analisada. Esta solução será apresentada a seguir.
+
+\emph{Veja como esta segunda solução se apoia sobre a primeira, e
+é descrita em um pouco mais de detalhe. Motivo: além de ser menos
+óbvia, ela serve de ponte para a terceira alternativa, que será a
+verdadeira resposta, e aqui precisamos deixar claro como funciona
+o mecanismo de propagação do erro. Isto é fundamental para o que vem
+a seguir. Note que esta solução é descartada com uma lista de motivos,
+para que ninguém pergunte porque ela não foi implementada.}
+
+\section*{Terceira solução}
+
+Se já sabemos como o erro se propaga quando a regra da multiplicação
+por 2 é usada, podemos pensar em uma alternativa: em vez de procurar
+individualmente cada número entre 2 e 100, podemos iniciar uma busca
+que vai aplicando as regras que temos e controlando o erro envolvido,
+anotando os números encontrados no decorrer do processamento. É claro
+que para isto precisamos saber exatamente como se propaga o erro quando
+as regras são aplicadas, mas já conhecemos o caso da primeira regra,
+e agora só falta analisar o que acontece quando se aplica a segunda.
+A maneira mais simples é fazendo um teste, iniciando com 32 e dividindo
+duas vezes, anotando os erros:
+
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tabular}{|c|c|l|l|}
+\hline 
+Valor truncado & Fórmula & Valor exato & Erro\\
+\hline 
+32 & $2^{5}\div3^{0}$ & 32 & 0\\
+\hline 
+10 & $2^{5}\div3^{1}$ & 10.6666\ldots{} & 0.6666\ldots{}\\
+\hline 
+3 & $2^{5}\div3^{2}$ & 3.5555\ldots{} & 0.5555\ldots{}\\
+\hline 
+\end{tabular}
+\par\end{center}
+
+\vspace{0.3cm}
+
+É bastante claro que o erro não é simplesmente dividido por três a
+cada aplicação da regra, pois se assim fosse não haveria erro para
+10 ou 3, já que o erro inicial era zero. Assim, imaginamos que o erro
+para a divisão seja calculado de forma mais complicada, e depois de
+alguns testes a regra obtida é a seguinte: dado um número $n$ com
+erro $e_{n,}$ ao aplicarmos a regra de divisão obteremos um novo
+número $n/3$ com erro dado por $e_{n}/3+(n\bmod3)/3=(e_{n}+n\bmod3)/3$.
+Embora esta regra pareça complicada, podemos fazer um teste com os
+números anteriores: 
+
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tabular}{|c|l|l|}
+\hline 
+Valor & Valor exato & Erro\\
+\hline 
+32 & 32 & 0\\
+\hline 
+10 & 10.6666\ldots{} & $0/3+(32\bmod3)/3=0+2/3=0.6666\ldots$\\
+\hline 
+3 & 3.5555\ldots{} & $0.6666\ldots/3+(10\bmod3)/3=0.2222\ldots+0.3333\ldots=0.5555\ldots$\\
+\hline 
+\end{tabular}
+\par\end{center}
+
+\vspace{0.3cm}
+
+Agora que sabemos como o erro se propaga quando as regras são aplicadas,
+podemos facilmente propor uma solução que recebe um valor inicial
+e aplica repetidamente as regras dadas, mantendo controle do erro
+e anotando novos valores encontrados.
+
+\emph{Perceba que a fórmula apresentada não foi provada nem justificada
+de forma sólida! Isto deve ser melhorado para que um leitor entenda
+}\textbf{\emph{por que}}\emph{ ela funciona! }
+
+Este algoritmo pode funcionar de forma recursiva, da seguinte forma:
+
+\addfunctions{pesquisa}
+
+\begin{lstlisting}
+registro tab[100] {
+  int achei, int exp2, int exp3
+}
+
+para i:= 1 até 100 faça
+  tab[i].achei := FALSE
+fim
+achados := 0
+
+procedimento pesquisa(int num, int exp2, int exp3, real err)
+  // Verificamos se o erro ultrapassa 1.
+  // Se ultrapassa estamos falando de outro número...
+  se err >= 1 então
+    num := num + 1
+    err := err - 1
+  fim
+  
+  // Armazenamos os expoentes...
+  se num <= 100 e tab[num].achei := FALSE então
+    tab[num].exp2 := exp2
+    tab[num].exp3 := exp3
+    tab[num].achei := TRUE
+    achados := achados + 1
+  fim
+  
+  // Se ainda faltam números, reaplicar regras...
+  se achados < 100 então
+    pesquisa(num * 2, exp2 + 1, exp3, err * 2)
+    pesquisa(num / 3, exp2, exp3 + 1, (err + n mod 3) / 3)
+  fim
+fim
+
+// Primeira chamada
+pesquisa(1, 0, 0, 0)
+\end{lstlisting}
+
+\emph{A solução é quase essa, mas afinal se você correr pra implementar
+e funcionar de cara seria muito fácil, e isso não dá pra deixar. Num
+artigo de verdade eu colocaria a solução certinha, mas este é uma
+demonstração, por isso você pode pensar a respeito.}
+
+\emph{Se você está usando linguagens orientadas a objetos: dar uma
+lista de classes que você criou} \textbf{\emph{não}} \emph{é explicação
+pra nada! Falar das classes não basta, você deve esclarecer o que
+elas fazem! Ou seja, como trabalham, que algoritmos usam, como são
+interligadas. Pense como é pouco informativo: ``\ldots{}daí fiz umas
+classes A, B e C, que resolvem o problema.'' Isso diz alguma coisa?}
+
+A primeira chamada para a função que pesquisa os números deve ser
+feita com um número inicial, e é bastante simples determinar este
+número: deve ser $a$, o número fornecido inicialmente para o problema.
+Desta forma, passamos inicialmente o valor 1, com expoente 0 para
+2 e 3 e com erro também zero. A partir daí o algoritmo é executado
+até que 100 valores estejam na tabela, e em seguida a tabela pode
+ser impressa no formato adequado.
+
+Nesta versão de algoritmo não garantimos que estamos encontrando os
+menores expoentes possíveis, mas o algoritmo pode ser modificado para
+usar comparações com valores já existentes, ou manter listas de expoentes
+em vez de apenas uma tabela.
+
+\emph{Perceba que você não precisa ser a mãe do leitor, explicando
+cada linha do código e detalhe por detalhe. Se você acha que ja explicou
+o bastante e a idéia está clara, deixe que o leitor pense um pouco
+para entender como as coisas funcionam. Cuidado: isso} \textbf{\emph{não}}
+\emph{quer dizer que você deve deixá-lo perdido e no escuro. Você
+também não pode colocar cinco páginas de código e esperar que ele
+simplesmente leia e entenda.}
+
+\section*{Resultados}
+
+Depois de implementar o algoritmo acima em linguagem C e executá-lo
+num tempo de aproximadamente meio segundo, obtivemos os seguintes
+resultados:
+
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tabular}{l|l|l|l}
+\texttt{1 = 2\textasciicircum{}0 / 3\textasciicircum{}0} & \texttt{26 = 2\textasciicircum{}19 / 3\textasciicircum{}9} & \texttt{51 = 2\textasciicircum{}58 / 3\textasciicircum{}33} & \texttt{76 = 2\textasciicircum{}76 / 3\textasciicircum{}44}\\
+\texttt{2 = 2\textasciicircum{}1 / 3\textasciicircum{}0} & \texttt{27 = 2\textasciicircum{}46 / 3\textasciicircum{}26} & \texttt{52 = 2\textasciicircum{}39 / 3\textasciicircum{}21} & \texttt{77 = 2\textasciicircum{}57 / 3\textasciicircum{}32}\\
+\texttt{3 = 2\textasciicircum{}5 / 3\textasciicircum{}2} & \texttt{28 = 2\textasciicircum{}8 / 3\textasciicircum{}2} & \texttt{53 = 2\textasciicircum{}20 / 3\textasciicircum{}9} & \texttt{78 = 2\textasciicircum{}38 / 3\textasciicircum{}20}\\
+\texttt{4 = 2\textasciicircum{}2 / 3\textasciicircum{}0} & \texttt{29 = 2\textasciicircum{}16 / 3\textasciicircum{}7} & \texttt{54 = 2\textasciicircum{}66 / 3\textasciicircum{}38} & \texttt{79 = 2\textasciicircum{}19 / 3\textasciicircum{}8}\\
+\texttt{5 = 2\textasciicircum{}4 / 3\textasciicircum{}1} & \texttt{30 = 2\textasciicircum{}62 / 3\textasciicircum{}36} & \texttt{55 = 2\textasciicircum{}47 / 3\textasciicircum{}26} & \texttt{80 = 2\textasciicircum{}84 / 3\textasciicircum{}49}\\
+\texttt{6 = 2\textasciicircum{}9 / 3\textasciicircum{}4} & \texttt{31 = 2\textasciicircum{}24 / 3\textasciicircum{}12} & \texttt{56 = 2\textasciicircum{}9 / 3\textasciicircum{}2} & \texttt{81 = 2\textasciicircum{}65 / 3\textasciicircum{}37}\\
+\texttt{7 = 2\textasciicircum{}6 / 3\textasciicircum{}2} & \texttt{32 = 2\textasciicircum{}5 / 3\textasciicircum{}0} & \texttt{57 = 2\textasciicircum{}74 / 3\textasciicircum{}43} & \texttt{82 = 2\textasciicircum{}130 / 3\textasciicircum{}78}\\
+\texttt{8 = 2\textasciicircum{}3 / 3\textasciicircum{}0} & \texttt{33 = 2\textasciicircum{}13 / 3\textasciicircum{}5} & \texttt{58 = 2\textasciicircum{}55 / 3\textasciicircum{}31} & \texttt{83 = 2\textasciicircum{}46 / 3\textasciicircum{}25}\\
+\texttt{9 = 2\textasciicircum{}8 / 3\textasciicircum{}3} & \texttt{34 = 2\textasciicircum{}59 / 3\textasciicircum{}34} & \texttt{59 = 2\textasciicircum{}17 / 3\textasciicircum{}7} & \texttt{84 = 2\textasciicircum{}27 / 3\textasciicircum{}13}\\
+\texttt{10 = 2\textasciicircum{}5 / 3\textasciicircum{}1} & \texttt{35 = 2\textasciicircum{}21 / 3\textasciicircum{}10} & \texttt{60 = 2\textasciicircum{}82 / 3\textasciicircum{}48} & \texttt{85 = 2\textasciicircum{}92 / 3\textasciicircum{}54}\\
+\texttt{11 = 2\textasciicircum{}13 / 3\textasciicircum{}6} & \texttt{36 = 2\textasciicircum{}48 / 3\textasciicircum{}27} & \texttt{61 = 2\textasciicircum{}63 / 3\textasciicircum{}36} & \texttt{86 = 2\textasciicircum{}73 / 3\textasciicircum{}42}\\
+\texttt{12 = 2\textasciicircum{}10 / 3\textasciicircum{}4} & \texttt{37 = 2\textasciicircum{}10 / 3\textasciicircum{}3} & \texttt{62 = 2\textasciicircum{}44 / 3\textasciicircum{}24} & \texttt{87 = 2\textasciicircum{}54 / 3\textasciicircum{}30}\\
+\texttt{13 = 2\textasciicircum{}18 / 3\textasciicircum{}9} & \texttt{38 = 2\textasciicircum{}56 / 3\textasciicircum{}32} & \texttt{63 = 2\textasciicircum{}25 / 3\textasciicircum{}12} & \texttt{88 = 2\textasciicircum{}35 / 3\textasciicircum{}18}\\
+\texttt{14 = 2\textasciicircum{}7 / 3\textasciicircum{}2} & \texttt{39 = 2\textasciicircum{}18 / 3\textasciicircum{}8} & \texttt{64 = 2\textasciicircum{}71 / 3\textasciicircum{}41} & \texttt{89 = 2\textasciicircum{}16 / 3\textasciicircum{}6}\\
+\texttt{15 = 2\textasciicircum{}23 / 3\textasciicircum{}12} & \texttt{40 = 2\textasciicircum{}64 / 3\textasciicircum{}37} & \texttt{65 = 2\textasciicircum{}52 / 3\textasciicircum{}29} & \texttt{90 = 2\textasciicircum{}81 / 3\textasciicircum{}47}\\
+\texttt{16 = 2\textasciicircum{}4 / 3\textasciicircum{}0} & \texttt{41 = 2\textasciicircum{}45 / 3\textasciicircum{}25} & \texttt{66 = 2\textasciicircum{}33 / 3\textasciicircum{}17} & \texttt{91 = 2\textasciicircum{}146 / 3\textasciicircum{}88}\\
+\texttt{17 = 2\textasciicircum{}20 / 3\textasciicircum{}10} & \texttt{42 = 2\textasciicircum{}26 / 3\textasciicircum{}13} & \texttt{67 = 2\textasciicircum{}14 / 3\textasciicircum{}5} & \texttt{92 = 2\textasciicircum{}62 / 3\textasciicircum{}35}\\
+\texttt{18 = 2\textasciicircum{}9 / 3\textasciicircum{}3} & \texttt{43 = 2\textasciicircum{}53 / 3\textasciicircum{}30} & \texttt{68 = 2\textasciicircum{}79 / 3\textasciicircum{}46} & \texttt{93 = 2\textasciicircum{}43 / 3\textasciicircum{}23}\\
+\texttt{19 = 2\textasciicircum{}17 / 3\textasciicircum{}8} & \texttt{44 = 2\textasciicircum{}15 / 3\textasciicircum{}6} & \texttt{69 = 2\textasciicircum{}60 / 3\textasciicircum{}34} & \texttt{94 = 2\textasciicircum{}24 / 3\textasciicircum{}11}\\
+\texttt{20 = 2\textasciicircum{}44 / 3\textasciicircum{}25} & \texttt{45 = 2\textasciicircum{}80 / 3\textasciicircum{}47} & \texttt{70 = 2\textasciicircum{}41 / 3\textasciicircum{}22} & \texttt{95 = 2\textasciicircum{}89 / 3\textasciicircum{}52}\\
+\texttt{21 = 2\textasciicircum{}6 / 3\textasciicircum{}1} & \texttt{46 = 2\textasciicircum{}42 / 3\textasciicircum{}23} & \texttt{71 = 2\textasciicircum{}22 / 3\textasciicircum{}10} & \texttt{96 = 2\textasciicircum{}154 / 3\textasciicircum{}93}\\
+\texttt{22 = 2\textasciicircum{}14 / 3\textasciicircum{}6} & \texttt{47 = 2\textasciicircum{}23 / 3\textasciicircum{}11} & \texttt{72 = 2\textasciicircum{}68 / 3\textasciicircum{}39} & \texttt{97 = 2\textasciicircum{}70 / 3\textasciicircum{}40}\\
+\texttt{23 = 2\textasciicircum{}22 / 3\textasciicircum{}11} & \texttt{48 = 2\textasciicircum{}69 / 3\textasciicircum{}40} & \texttt{73 = 2\textasciicircum{}49 / 3\textasciicircum{}27} & \texttt{98 = 2\textasciicircum{}51 / 3\textasciicircum{}28}\\
+\texttt{24 = 2\textasciicircum{}30 / 3\textasciicircum{}16} & \texttt{49 = 2\textasciicircum{}31 / 3\textasciicircum{}16} & \texttt{74 = 2\textasciicircum{}30 / 3\textasciicircum{}15} & \texttt{99 = 2\textasciicircum{}32 / 3\textasciicircum{}16}\\
+\texttt{25 = 2\textasciicircum{}11 / 3\textasciicircum{}4} & \texttt{50 = 2\textasciicircum{}12 / 3\textasciicircum{}4} & \texttt{75 = 2\textasciicircum{}95 / 3\textasciicircum{}56} & \texttt{100 = 2\textasciicircum{}97 / 3\textasciicircum{}57}\\
+\end{tabular}
+\par\end{center}
+
+\vspace{0.3cm}
+
+Após a obtenção destes valores, estes foram testados com ferramentas
+capazes de lidar com os grandes números envolvidos, e todos os resultados
+foram confirmados corretos.
+
+\emph{Por favor, não esqueça de apresentar os resultados, afinal deve
+ser isso que seu leitor quer ver!}
+
+\section*{Conclusões}
+
+As abordagens iniciais, mesmo oferecendo apenas resultados parciais,
+contribuíram bastante para o entendimento do problema e abriram caminho
+para a solução definitiva. Esta se mostrou bastante simples e eficiente,
+embora tenha exigido um estudo de como o erro se propaga quando as
+regras são aplicadas a novos números. A solução implementada não se
+preocupou em achar sempre os menores expoentes possíveis, mas mesmo
+assim ela foi bastante eficiente e os expoentes encontrados não são
+excessivamente grandes (foram feitas comparações com o primeiro algoritmo
+apresentado, e as diferenças foram poucas). Além disso, a solução
+recursiva adotada foi razoavelmente elegante e clara, não precisando
+de uma implementação complicada.
+
+Embora não tenham sido mostrados neste artigo, foram feitos testes
+com outros valores iniciais ($a\not=1)$ e para números indo até bem
+mais do que 100, o algoritmo também funcionou bem.
+
+Acreditamos ter desenvolvido uma solução interessante e barata a um
+problema relativamente complexo, já que em uma linguagem de programação
+usual não existe suporte direto para tratar com os números envolvidos,
+e conseguimos determinar resultados corretos que envolvem grandes
+números.
+
+\emph{Suas conclusões não precisam ser geniais nem mudar o mundo.
+Veja que a parte inteligente do artigo já foi feita, e veio antes!
+Agora é a hora de fechar e dizer o que você acha que poderia vir depois,
+etc etc. E se você está pensando em dizer coisas como ``Provavelmente
+existem soluções melhores'', então diga ao menos o que você pensa
+que pode melhorar (por exemplo, neste artigo eu gostaria de evitar
+o uso de números em ponto flutuante e preferiria trocar por algum
+tipo de controle com inteiros). Se você não der opções e só disser
+que dá pra fazer melhor, está se diminundo de graça. Pra que isso?}
+
+\emph{A bibliografia abaixo não foi usada neste artigo, e serve apenas
+de exemplo para a formatação. Outros exemplos estão na página da biblioteca
+da PUCRS.}
+\begin{thebibliography}{1}
+\bibitem{1}Brassard, G.; Bratley, P: ``\textbf{Fundamentals of algorithmics}''.
+Prentice Hall, Englewood Cliffs, New Jersey, 1996.
+
+\bibitem{2}Cormen, T.~H.; Leiserson, E.~C.; Rivest, R.~L.: \textbf{``Introduction
+to Algorithms''}. Mc-Graw Hill Book Co., The MIT Electrical Engineering
+and Computer Science Series, Cambridge, 1990.
+
+\bibitem{3}Graham, R.~L.; Knuth, D.~E.; Patashnik, O.: \textbf{``Concrete
+mathematics''}. Addison-Wesley, Reading, 1989.
+
+\bibitem{4}Moret, B.~M.; Shapiro, H.~D.: ``\textbf{Algorithms from
+P to NP: design and efficiency}''. Addison-Wesley, Reading, 1990.
+
+\bibitem{5}Lueker, G.~S.: ``\emph{Some techniques for solving recurrences}''.
+Computing Surveys, Vol. 12, no. 4, dezembro 1980.
+
+\bibitem{6}Rawlins, Gregory J.~E.: ``\textbf{Compared to what? An
+introduction to the analysis of algorithms}'', Computer Science Press,
+New York, 1992.
+\end{thebibliography}
+
+\section*{Outros detalhes}
+
+\emph{(Coisas que não entram num artigo, mas que vou escrever aqui
+porque deve ser ditas em algum lugar). }
+\begin{enumerate}
+\item Em primeiríssimo lugar: você está numa Universidade e portanto deve
+ter ido à escola por uns onze anos pelo menos. Você teve aulas de
+português por cerca de sete desses anos, várias vezes por semana e
+ainda prestou prova para o vestibular. Seu editor de texto, por outro
+lado, não teve aula nenhuma e provavelmente foi (meio mal) adaptado
+do inglês. Mostre um pouco de respeito por si mesmo e desligue \textbf{tudo
+o que puder}. Desligue todas as correções automáticas e assuma a responsabilidade
+pelo que você sabe.
+\item Acentos ainda existem em português, e deverão continuar por muito
+tempo. Use-os.
+\item Note a consistência no que está escrito: o valor inicial $a$, por
+exemplo, está sempre escrito da mesma forma, em itálico, para que
+o leitor não encontre cinco tipos de letra $a$ diferentes e tenha
+de lembrar o que cada uma significa. Isto mostra que o autor teve
+cuidado ao escrever.
+\item Note que os fontes são sempre coerentes: texto em Times, matemática
+em itálico, algoritmos em Typewriter. Não há fontes maiores ou menores,
+nem parágrafos com fonte diferente, margem ou espaçamento maiores
+ou menores do que os outros.
+\item Veja também que as potências estão sempre escritas corretamente no
+texto: $x^{y}$. Não se usam notações como \emph{x\textasciicircum{}y}
+porque elas são feias. Esta notação só é usada quando se fala do formato
+de saída, pois ele é exigido desta forma. Da mesma forma, quando são
+necessários subscritos eles devem ser escritos corretamente: $A_{i}$,
+$b_{ij}$ etc. Escrever \emph{Aj} ou \emph{bij} é um mau sinal.
+\item Se algo está nas referências deve estar citado no texto, e se está
+citado no texto tem de aparecer nas referências!! A maneira correta
+de citar uma referência é: ``Segundo \cite{3} e \cite{4}, o algoritmo
+precisa\ldots{}''
+\item Tenha cuidado com seu texto, ele deve transmitir a impressão de que
+foi escrito com todo o cuidado do mundo. Dedique tempo a ele e tente
+deixá-lo melhor, pois sua reputação (e nota) dependem disso.
+\item Este artigo foi totalmente escrito usando \emph{LyX}, um dos melhores
+editores de textos que existe, fazendo uso de \TeX\ e \LaTeX, que
+são sem dúvida os melhores formatadores de texto do mundo. Tudo isto
+é software livre rodando sob LINUX. Aprenda a usá-los, vai fazer bem.
+\item Para ajudar na missão ingrata de fazer um trabalho agradável para
+a leitura, este \emph{checklist} pode ajudar:
+
+\renewcommand{\labelitemi}{\(\Box\)}
+\begin{itemize}
+\item Artigos não tem capa.
+\item Coloquei título neste trabalho? Coloquei meu nome?
+\item Usei um espaçamento legal e tamanho de fonte decente ou tem só cinco
+linhas por página e as letras parecem manchetes?
+\item O trabalho tem uma introdução, para que se entenda do que estou falando?
+Eu contei o que ia resolver?
+\item O desenvolvimento é coerente, ou parece que recortei trechos de jornal
+e de meus colegas e grudei tudo?
+\item Dá pra entender minhas explicações ou tem que ter poderes paranormais?
+\item Tem o mínimo de código possível? Não dá pra ter ainda menos? Dá pra
+não ter nenhum? Se não tem nenhum, será que deveria ter um pouco mostrando
+as partes mais importantes? (Geralmente deveria)
+\item Se tem código, eu fico falando durante páginas e páginas entorpecentes
+e sem fim pra explicar o que ele faz, linha por linha? Posso ser \textbf{claro}
+sem ser \textbf{chato}?
+\item Se o trabalho pedia a resposta para algum problema, será que esqueci
+de dar o resultado? Tinha que dar vários exemplos e testes?
+\item Usei figuras pra esclarecer coisas que eram confusas, como aquelas
+listas que usei e agora eu mesmo mal consigo entender? Como vou querer
+que outra pessoa entenda?
+\item Minhas figuras são claras? Mostram coisas acontecendo passo a passo
+ou estão jogadas no papel? As legendas são descritivas?
+\item Os dados ficam melhor se forem apresentados em tabelas? Tenho gráficos
+de tempo e desempenho, se preciso? Com legendas, eixos, unidades,
+ou está uma bagunça feita no Excel?
+\item Lembrei de colocar minhas conclusões ao final do trabalho?
+\item Coloque as minhas fontes de informação na bibliografia?
+\end{itemize}
+\end{enumerate}
+
+\end{document}
