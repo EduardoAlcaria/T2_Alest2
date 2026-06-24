@@ -3,97 +3,101 @@ import java.util.*;
 
 public class CavaloPerdido {
 
-    static final int[][] KNIGHT_MOVES = {
-        {-2, -1}, {-2,  1},
-        {-1, -2}, {-1,  2},
-        { 1, -2}, { 1,  2},
-        { 2, -1}, { 2,  1}
+    // os 8 movimentos em L do cavalo (linha, coluna)
+    static int[][] movimentos = {
+        {-2, -1}, {-2, 1},
+        {-1, -2}, {-1, 2},
+        {1, -2},  {1, 2},
+        {2, -1},  {2, 1}
     };
 
-    /**
-     * BFS para menor número de movimentos do cavalo de C até S.
-     * Tabuleiro toroidal: posições fora dos limites são mapeadas via módulo.
-     * Retorna -1 se S for inacessível.
-     */
-    static int bfs(char[][] board, int rows, int cols, int sr, int sc, int er, int ec) {
-        if (sr == er && sc == ec) return 0;
+    // BFS pra achar o menor numero de pulos do C ate o S.
+    // tabuleiro toroidal entao quando passa da borda volta pelo outro lado (modulo).
+    // devolve -1 se nao tem como chegar.
+    static int bfs(char[][] tab, int linhas, int colunas, int cr, int cc, int sr, int sc) {
+        if (cr == sr && cc == sc) return 0; // ja comeca na saida
 
-        boolean[][] visited = new boolean[rows][cols];
-        visited[sr][sc] = true;
+        boolean[][] visitado = new boolean[linhas][colunas];
+        visitado[cr][cc] = true;
 
-        ArrayDeque<int[]> queue = new ArrayDeque<>();
-        queue.offer(new int[]{sr, sc, 0});
+        ArrayDeque<int[]> fila = new ArrayDeque<>();
+        fila.add(new int[]{cr, cc, 0});
 
-        while (!queue.isEmpty()) {
-            int[] cur = queue.poll();
-            int r = cur[0], c = cur[1], dist = cur[2];
+        while (!fila.isEmpty()) {
+            int[] atual = fila.poll();
+            int r = atual[0];
+            int c = atual[1];
+            int dist = atual[2];
 
-            for (int[] move : KNIGHT_MOVES) {
-                int nr = ((r + move[0]) % rows + rows) % rows;
-                int nc = ((c + move[1]) % cols + cols) % cols;
+            for (int[] m : movimentos) {
+                // modulo duplo pra dar conta de valor negativo (quando sai por cima/esquerda)
+                int nr = ((r + m[0]) % linhas + linhas) % linhas;
+                int nc = ((c + m[1]) % colunas + colunas) % colunas;
 
-                if (!visited[nr][nc] && board[nr][nc] != 'x') {
-                    if (nr == er && nc == ec) return dist + 1;
-                    visited[nr][nc] = true;
-                    queue.offer(new int[]{nr, nc, dist + 1});
+                if (!visitado[nr][nc] && tab[nr][nc] != 'x') {
+                    // ja confere aqui pra nao precisar processar a fila inteira
+                    if (nr == sr && nc == sc) return dist + 1;
+
+                    visitado[nr][nc] = true;
+                    fila.add(new int[]{nr, nc, dist + 1});
                 }
             }
         }
 
-        return -1;
+        return -1; // nao achou caminho
     }
 
-    static char[][] parseBoard(String filepath, int[] startOut, int[] endOut) throws IOException {
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (!line.isEmpty()) lines.add(line);
+    // le o arquivo, monta a matriz e ja guarda onde estao o C e o S
+    static char[][] lerTabuleiro(String caminho, int[] c, int[] s) throws IOException {
+        ArrayList<String> linhas = new ArrayList<>();
+        BufferedReader br = new BufferedReader(new FileReader(caminho));
+        String linha;
+        while ((linha = br.readLine()) != null) {
+            if (linha.length() > 0)
+                linhas.add(linha);
+        }
+        br.close();
+
+        int nLinhas = linhas.size();
+        int nColunas = linhas.get(0).length();
+        char[][] tab = new char[nLinhas][nColunas];
+
+        for (int i = 0; i < nLinhas; i++) {
+            String l = linhas.get(i);
+            for (int j = 0; j < l.length(); j++) {
+                tab[i][j] = l.charAt(j);
+                if (tab[i][j] == 'C') { c[0] = i; c[1] = j; }
+                if (tab[i][j] == 'S') { s[0] = i; s[1] = j; }
             }
         }
 
-        int rows = lines.size();
-        int cols = lines.get(0).length();
-        char[][] board = new char[rows][cols];
-
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < Math.min(cols, lines.get(r).length()); c++) {
-                board[r][c] = lines.get(r).charAt(c);
-                if (board[r][c] == 'C') { startOut[0] = r; startOut[1] = c; }
-                if (board[r][c] == 'S') { endOut[0]   = r; endOut[1]   = c; }
-            }
-        }
-
-        return board;
+        return tab;
     }
 
     public static void main(String[] args) throws IOException {
-        String baseDir = "CasosT2/";
-        String[] files = {"020.txt", "060.txt", "120.txt", "200.txt", "300.txt", "400.txt", "500.txt"};
+        String pasta = "CasosT2/";
+        String[] arquivos = {"020.txt", "060.txt", "120.txt", "200.txt", "300.txt", "400.txt", "500.txt"};
 
-        System.out.println("============================================================");
-        System.out.println("  O CAVALO PERDIDO — Resultados dos Casos de Teste");
-        System.out.println("============================================================\n");
+        System.out.println("== O Cavalo Perdido - resultados ==\n");
 
-        for (String filename : files) {
-            int[] start = new int[2], end = new int[2];
-            char[][] board = parseBoard(baseDir + filename, start, end);
-            int rows = board.length;
-            int cols = board[0].length;
+        for (String nome : arquivos) {
+            int[] c = new int[2];
+            int[] s = new int[2];
+            char[][] tab = lerTabuleiro(pasta + nome, c, s);
+            int linhas = tab.length;
+            int colunas = tab[0].length;
 
-            System.out.printf("Tabuleiro %s (%dx%d)%n", filename, rows, cols);
-            System.out.printf("  C=(%d,%d)  S=(%d,%d)%n", start[0], start[1], end[0], end[1]);
+            long inicio = System.currentTimeMillis();
+            int res = bfs(tab, linhas, colunas, c[0], c[1], s[0], s[1]);
+            long tempo = System.currentTimeMillis() - inicio;
 
-            long t0 = System.currentTimeMillis();
-            int result = bfs(board, rows, cols, start[0], start[1], end[0], end[1]);
-            long elapsed = System.currentTimeMillis() - t0;
-
-            if (result == -1) {
-                System.out.printf("  Resultado : Sem solucao possivel%n");
-            } else {
-                System.out.printf("  Resultado : %d movimentos%n", result);
-            }
-            System.out.printf("  Tempo BFS : %d ms%n%n", elapsed);
+            System.out.println("Tabuleiro " + nome + " (" + linhas + "x" + colunas + ")");
+            System.out.println("  C=(" + c[0] + "," + c[1] + ")  S=(" + s[0] + "," + s[1] + ")");
+            if (res == -1)
+                System.out.println("  sem solucao");
+            else
+                System.out.println("  " + res + " movimentos");
+            System.out.println("  tempo: " + tempo + " ms\n");
         }
     }
 }

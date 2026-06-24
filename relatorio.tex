@@ -1,20 +1,17 @@
-%% Baseado no template exemple.tex — ALEST II / PUCRS
-\documentclass[12pt,a4paper]{article}
+%% Baseado no template exemple.tex - ALEST II / PUCRS
+\documentclass[12pt,brazil,a4paper]{article}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{lmodern}
-\setlength{\textwidth}{17cm}
-\setlength{\textheight}{25cm}
-\setlength{\oddsidemargin}{-0.04cm}
-\setlength{\evensidemargin}{-0.04cm}
-\setlength{\topmargin}{-1.04cm}
+\usepackage{geometry}
+\geometry{verbose,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
 \input{algo}
+\RequirePackage{times}
 \makeatletter
 
 \newenvironment{code}
 {\par\begin{list}{}{
 \setlength{\rightmargin}{\leftmargin}
-\setlength{\listparindent}{0pt}
+\setlength{\listparindent}{0pt}% needed for AMS classes
 \raggedright
 \setlength{\itemsep}{0pt}
 \setlength{\parsep}{0pt}
@@ -24,14 +21,17 @@
 
 \setlength{\jot}{0.25\jot}
 \usepackage{latexsym}
+
 \makeatother
+
+\usepackage{babel}
 
 \begin{document}
 
 \title{O Cavalo Perdido}
 
 \author{Eduardo Alcaria, Nicolas Batista\\
-Escola Politécnica --- PUCRS}
+Escola Politécnica, PUCRS}
 
 \date{\today}
 \maketitle
@@ -43,8 +43,8 @@ o menor número de movimentos para um cavalo de xadrez sair de uma posição ini
 alcançar uma posição de saída em um tabuleiro toroidal com casas bloqueadas. Modela-se
 o tabuleiro como um grafo não-ponderado e aplica-se Busca em Largura (BFS) para
 encontrar o caminho mínimo de forma ótima. Os sete casos de teste fornecidos foram
-resolvidos com sucesso, com tempos de execução inferiores a 15\,ms mesmo para
-tabuleiros de $500 \times 500$.
+resolvidos com sucesso, com tempos de execução da ordem de poucos milissegundos
+mesmo para tabuleiros de $500 \times 500$.
 \end{abstract}
 
 \section*{Introdução}
@@ -99,7 +99,7 @@ $r + \Delta r < 0$ (borda superior ou esquerda).
 
 Com essa modelagem, determinar o menor número de movimentos do cavalo é
 equivalente a encontrar o \textbf{menor caminho entre dois vértices em um grafo
-não-ponderado} --- problema clássico resolvido de forma ótima pela Busca em
+não-ponderado}, problema clássico resolvido de forma ótima pela Busca em
 Largura (BFS).
 
 A complexidade desta modelagem é a seguinte:
@@ -137,8 +137,8 @@ Outras alternativas foram consideradas:
         Dijkstra tem $O((V+E)\log V)$.
   \item \textbf{A*:} eficiente quando a heurística é boa. Para tabuleiros com
         obstáculos aleatórios e geometria toroidal, a distância euclidiana não
-        é heurística admissível eficaz; e como o BFS já resolve em menos de
-        15\,ms para $500 \times 500$, a complexidade extra não se justifica.
+        é heurística admissível eficaz; e como o BFS já resolve em poucos
+        milissegundos para $500 \times 500$, a complexidade extra não se justifica.
 \end{itemize}
 
 \subsection*{Algoritmo}
@@ -190,41 +190,53 @@ A implementação foi realizada em Java. Alguns detalhes relevantes:
 
 O trecho principal da implementação é apresentado a seguir:
 
-\addfunctions{bfs,parseBoard,main}
-\addtypes{int,boolean,char,String}
+\addfunctions{bfs}
+\addtypes{int,boolean,char}
 
 \begin{lstlisting}[language=Java]
-static final int[][] MOVIMENTOS = {
+static int[][] movimentos = {
     {-2,-1},{-2, 1},{-1,-2},{-1, 2},
     { 1,-2},{ 1, 2},{ 2,-1},{ 2, 1}
 };
 
-static int bfs(char[][] tab, int N, int sr, int sc, int er, int ec) {
-    if (sr == er && sc == ec) return 0;
+static int bfs(char[][] tab, int linhas, int colunas,
+               int cr, int cc, int sr, int sc) {
+    if (cr == sr && cc == sc) return 0;
 
-    boolean[][] visitado = new boolean[N][N];
-    visitado[sr][sc] = true;
+    boolean[][] visitado = new boolean[linhas][colunas];
+    visitado[cr][cc] = true;
     ArrayDeque<int[]> fila = new ArrayDeque<>();
-    fila.offer(new int[]{sr, sc, 0});
+    fila.add(new int[]{cr, cc, 0});
 
     while (!fila.isEmpty()) {
-        int[] cur = fila.poll();
-        int r = cur[0], c = cur[1], dist = cur[2];
+        int[] atual = fila.poll();
+        int r = atual[0], c = atual[1], dist = atual[2];
 
-        for (int[] m : MOVIMENTOS) {
-            int nr = ((r + m[0]) % N + N) % N;
-            int nc = ((c + m[1]) % N + N) % N;
+        for (int[] m : movimentos) {
+            int nr = ((r + m[0]) % linhas + linhas) % linhas;
+            int nc = ((c + m[1]) % colunas + colunas) % colunas;
 
             if (!visitado[nr][nc] && tab[nr][nc] != 'x') {
-                if (nr == er && nc == ec) return dist + 1;
+                if (nr == sr && nc == sc) return dist + 1;
                 visitado[nr][nc] = true;
-                fila.offer(new int[]{nr, nc, dist + 1});
+                fila.add(new int[]{nr, nc, dist + 1});
             }
         }
     }
     return -1;
 }
 \end{lstlisting}
+
+\subsection*{Validação com o exemplo do enunciado}
+
+O enunciado fornece um tabuleiro de exemplo, de dimensão $20 \times 39$
+(não quadrado), e afirma que o cavalo alcança a saída em \textbf{10 pulos}.
+A implementação trata as dimensões de linhas e colunas de forma independente,
+portanto funciona para tabuleiros de qualquer dimensão $M \times N$. Ao executar
+o algoritmo sobre esse tabuleiro, com \texttt{C} na linha~4, coluna~10 e
+\texttt{S} na linha~14, coluna~34, o resultado obtido foi exatamente
+\textbf{10 movimentos}, reproduzindo o valor indicado no enunciado e confirmando
+a corretude da modelagem toroidal.
 
 \subsection*{Exemplo: tabuleiro 020.txt ($20 \times 20$)}
 
@@ -253,11 +265,11 @@ mínimo em \textbf{4 movimentos}.
 \hline
 \textbf{Camada BFS} & \textbf{Situação} \\
 \hline
-0 & \texttt{C = (19, 16)} --- posição inicial \\
+0 & \texttt{C = (19, 16)}, posição inicial \\
 1 & Vizinhos válidos a 1 salto de \texttt{C} \\
 2 & Vizinhos válidos a 2 saltos de \texttt{C} \\
 3 & Vizinhos válidos a 3 saltos de \texttt{C} \\
-4 & \texttt{S = (7, 14)} encontrado --- \textbf{4 movimentos} \\
+4 & \texttt{S = (7, 14)} encontrado: \textbf{4 movimentos} \\
 \hline
 \end{tabular}
 \end{center}
@@ -291,9 +303,10 @@ Isso ocorre porque a dificuldade de cada instância depende da posição relativ
 de \texttt{C} e \texttt{S} e da distribuição dos obstáculos, que são independentes
 em cada tabuleiro.
 
-O tempo de execução permaneceu inferior a 15\,ms mesmo para o maior tabuleiro
-($500 \times 500$, com 250\,000 células), confirmando a eficiência prática
-do BFS com complexidade $O(N^2)$.
+O tempo de execução permaneceu na ordem de poucos milissegundos mesmo para o
+maior tabuleiro ($500 \times 500$, com 250\,000 células), confirmando a
+eficiência prática do BFS com complexidade $O(N^2)$. Os tempos da tabela são de
+uma execução representativa e variam conforme a máquina.
 
 \section*{Conclusões}
 
@@ -305,7 +318,7 @@ de BFS mostrou-se adequada e eficiente:
   \item \textbf{Otimalidade:} BFS garante o menor número de movimentos em
         grafos não-ponderados.
   \item \textbf{Eficiência:} complexidade $O(N^2)$ em tempo e espaço, com
-        todos os casos resolvidos em menos de 15\,ms.
+        todos os casos resolvidos em poucos milissegundos.
   \item \textbf{Corretude no tabuleiro toroidal:} a aritmética modular
         garante que os movimentos que cruzam bordas são tratados corretamente.
   \item \textbf{Impossibilidade:} quando não existe caminho, o BFS encerra
