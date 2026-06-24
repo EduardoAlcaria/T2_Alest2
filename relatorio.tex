@@ -261,9 +261,17 @@ def resolver(tabuleiro):
 \section*{Resultados}
 
 Os sete tabuleiros fornecidos foram processados pelo algoritmo BFS. Em todos os casos
-existe solução. Os resultados são apresentados na tabela a seguir.
+existe solução. Os resultados são apresentados na Figura~1 e na Tabela~1.
 
-\vspace{0.8em}
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{performance.png}
+\caption{À esquerda: tempo de execução em função da dimensão $N$, com curva de
+referência $O(N^2)$ escalada pelo ponto final. À direita: número mínimo de movimentos
+por caso de teste.}
+\end{figure}
+
+\vspace{0.4em}
 \renewcommand{\arraystretch}{1.3}
 \begin{center}
 \small
@@ -281,19 +289,22 @@ existe solução. Os resultados são apresentados na tabela a seguir.
 500.txt & $500 \times 500$ & (347, 282) & (354, 36)  & \textbf{123} & 154  \\
 \bottomrule
 \end{tabular}
-\end{center}
+
 \vspace{0.3em}
+{\small Tabela 1: Resultados dos sete casos de teste. Tempos medidos em Python numa
+execução representativa; variam conforme a máquina.}
+\end{center}
 
+\vspace{0.4em}
 Observa-se que o número de movimentos não cresce monotonicamente com o tamanho do
-tabuleiro. O caso $120 \times 120$ exige menos movimentos (14) do que o $60 \times 60$
+tabuleiro: o caso $120 \times 120$ exige menos movimentos (14) do que o $60 \times 60$
 (15), e o $400 \times 400$ (52) menos do que o $200 \times 200$ (51). Isso ocorre
-porque a dificuldade de cada instância depende da posição relativa de \texttt{C} e
-\texttt{S} e da distribuição dos obstáculos, que são independentes em cada tabuleiro.
+porque a dificuldade depende da posição relativa de \texttt{C} e \texttt{S} e da
+distribuição dos obstáculos, que são independentes em cada instância.
 
-O tempo de execução permaneceu abaixo de 200\,ms mesmo para o maior tabuleiro
-($500 \times 500$, com 250\,000 células), confirmando a eficiência prática do BFS
-com complexidade $O(N^2)$. Os tempos da tabela são de uma execução representativa
-em Python e variam conforme a máquina.
+O gráfico de tempo confirma o comportamento $O(N^2)$: a curva medida acompanha a
+referência quadrática, com o caso $500 \times 500$ (250\,000 células) resolvido em
+menos de 200\,ms.
 
 \newpage
 
