@@ -201,54 +201,59 @@ procedimento BFS(tabuleiro, N, C, S)
 
 \subsection*{Detalhes de implementação}
 
-A implementação foi realizada em Java. Alguns detalhes relevantes:
+A implementação foi realizada em Python. Alguns detalhes relevantes:
 
 \begin{itemize}[leftmargin=2.2em,itemsep=0.4em]
-  \item Utiliza-se \texttt{ArrayDeque} em vez de \texttt{LinkedList} para a fila,
-        reduzindo o overhead de alocação de memória e melhorando o desempenho
-        especialmente nos tabuleiros maiores.
+  \item Utiliza-se \texttt{collections.deque} para a fila, estrutura com inserção
+        e remoção em $O(1)$ nas duas extremidades, adequada para o BFS.
   \item A verificação de chegada ao destino é feita no momento da \emph{inserção}
         na fila, não da remoção. Isso permite encerrar a busca imediatamente ao
         encontrar \texttt{S}, sem processar o restante da última camada.
-  \item O array \texttt{visitado} também é marcado no momento da inserção, evitando
+  \item A matriz \texttt{visitado} é marcada no momento da inserção, evitando
         que o mesmo vértice seja adicionado à fila múltiplas vezes e garantindo
         complexidade $O(N^2)$.
+  \item Em Python, o operador \texttt{\%} já retorna valor não-negativo para
+        divisores positivos, então o deslocamento toroidal simplifica para
+        \texttt{(r + dr) \% linhas} sem ajuste adicional.
 \end{itemize}
 
 O trecho principal da implementação é apresentado a seguir:
 
-\begin{lstlisting}[language=Java]
-static int[][] movimentos = {
-    {-2,-1},{-2, 1},{-1,-2},{-1, 2},
-    { 1,-2},{ 1, 2},{ 2,-1},{ 2, 1}
-};
+\begin{lstlisting}[language=Python]
+MOVIMENTOS = [(-2,-1),(-2,1),(-1,-2),(-1,2),(1,-2),(1,2),(2,-1),(2,1)]
 
-static int bfs(char[][] tab, int linhas, int colunas,
-               int cr, int cc, int sr, int sc) {
-    if (cr == sr && cc == sc) return 0;
+def resolver(tabuleiro):
+    linhas = len(tabuleiro)
+    colunas = len(tabuleiro[0])
 
-    boolean[][] visitado = new boolean[linhas][colunas];
-    visitado[cr][cc] = true;
-    ArrayDeque<int[]> fila = new ArrayDeque<>();
-    fila.add(new int[]{cr, cc, 0});
+    inicio = saida = None
+    for r in range(linhas):
+        for c in range(colunas):
+            if tabuleiro[r][c] == 'C':
+                inicio = (r, c)
+            elif tabuleiro[r][c] == 'S':
+                saida = (r, c)
 
-    while (!fila.isEmpty()) {
-        int[] atual = fila.poll();
-        int r = atual[0], c = atual[1], dist = atual[2];
+    if inicio == saida:
+        return 0
 
-        for (int[] m : movimentos) {
-            int nr = ((r + m[0]) % linhas + linhas) % linhas;
-            int nc = ((c + m[1]) % colunas + colunas) % colunas;
+    visitado = [[False] * colunas for _ in range(linhas)]
+    visitado[inicio[0]][inicio[1]] = True
+    fila = deque([(inicio[0], inicio[1], 0)])
 
-            if (!visitado[nr][nc] && tab[nr][nc] != 'x') {
-                if (nr == sr && nc == sc) return dist + 1;
-                visitado[nr][nc] = true;
-                fila.add(new int[]{nr, nc, dist + 1});
-            }
-        }
-    }
-    return -1;
-}
+    while fila:
+        r, c, dist = fila.popleft()
+        for dr, dc in MOVIMENTOS:
+            nr = (r + dr) % linhas
+            nc = (c + dc) % colunas
+            if visitado[nr][nc] or tabuleiro[nr][nc] == 'x':
+                continue
+            if (nr, nc) == saida:
+                return dist + 1
+            visitado[nr][nc] = True
+            fila.append((nr, nc, dist + 1))
+
+    return -1
 \end{lstlisting}
 
 \newpage
@@ -268,12 +273,12 @@ existe solução. Os resultados são apresentados na tabela a seguir.
                  & \textbf{Mínimo de movimentos} & \textbf{Tempo (ms)} \\
 \midrule
 020.txt & $20  \times 20$  & (19, 16)   & (7, 14)    & \textbf{4}   & $<$1 \\
-060.txt & $60  \times 60$  & (24, 48)   & (49, 6)    & \textbf{15}  & 1    \\
-120.txt & $120 \times 120$ & (115, 65)  & (16, 82)   & \textbf{14}  & 1    \\
-200.txt & $200 \times 200$ & (109, 91)  & (161, 188) & \textbf{51}  & 5    \\
-300.txt & $300 \times 300$ & (103, 136) & (22, 15)   & \textbf{68}  & 6    \\
-400.txt & $400 \times 400$ & (242, 164) & (190, 66)  & \textbf{52}  & 2    \\
-500.txt & $500 \times 500$ & (347, 282) & (354, 36)  & \textbf{123} & 14   \\
+060.txt & $60  \times 60$  & (24, 48)   & (49, 6)    & \textbf{15}  & 2    \\
+120.txt & $120 \times 120$ & (115, 65)  & (16, 82)   & \textbf{14}  & 2    \\
+200.txt & $200 \times 200$ & (109, 91)  & (161, 188) & \textbf{51}  & 23   \\
+300.txt & $300 \times 300$ & (103, 136) & (22, 15)   & \textbf{68}  & 42   \\
+400.txt & $400 \times 400$ & (242, 164) & (190, 66)  & \textbf{52}  & 31   \\
+500.txt & $500 \times 500$ & (347, 282) & (354, 36)  & \textbf{123} & 154  \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -285,10 +290,10 @@ tabuleiro. O caso $120 \times 120$ exige menos movimentos (14) do que o $60 \tim
 porque a dificuldade de cada instância depende da posição relativa de \texttt{C} e
 \texttt{S} e da distribuição dos obstáculos, que são independentes em cada tabuleiro.
 
-O tempo de execução permaneceu na ordem de poucos milissegundos mesmo para o maior
-tabuleiro ($500 \times 500$, com 250\,000 células), confirmando a eficiência prática
-do BFS com complexidade $O(N^2)$. Os tempos da tabela são de uma execução representativa
-e variam conforme a máquina.
+O tempo de execução permaneceu abaixo de 200\,ms mesmo para o maior tabuleiro
+($500 \times 500$, com 250\,000 células), confirmando a eficiência prática do BFS
+com complexidade $O(N^2)$. Os tempos da tabela são de uma execução representativa
+em Python e variam conforme a máquina.
 
 \newpage
 
