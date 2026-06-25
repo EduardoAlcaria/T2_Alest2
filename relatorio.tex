@@ -128,7 +128,7 @@ $r + \Delta r < 0$ (borda superior ou esquerda).
 
 Com essa modelagem, determinar o menor número de movimentos é equivalente a encontrar
 o \textbf{menor caminho entre dois vértices em um grafo não-ponderado}, problema clássico
-resolvido de forma ótima pela Busca em Largura (BFS).
+resolvido de forma ótima pela Busca em Largura (BFS)~[1].
 
 \vspace{0.6em}
 \begin{center}
@@ -164,7 +164,7 @@ Outras alternativas foram consideradas:
         necessariamente o menor.
   \item \textbf{Dijkstra:} correto para grafos com pesos, porém desnecessariamente
         complexo para pesos uniformes. BFS tem complexidade $O(V+E)$, enquanto
-        Dijkstra tem $O((V+E)\log V)$.
+        Dijkstra tem $O((V+E)\log V)$~[2].
   \item \textbf{A*:} eficiente quando a heurística é boa. Para tabuleiros com
         obstáculos aleatórios e geometria toroidal, a distância euclidiana não é
         heurística admissível eficaz; e como o BFS já resolve em poucos
@@ -206,7 +206,7 @@ A implementação foi realizada em Python. Alguns detalhes relevantes:
 
 \begin{itemize}[leftmargin=2.2em,itemsep=0.4em]
   \item Utiliza-se \texttt{collections.deque} para a fila, estrutura com inserção
-        e remoção em $O(1)$ nas duas extremidades, adequada para o BFS.
+        e remoção em $O(1)$ nas duas extremidades, adequada para o BFS~[3].
   \item A verificação de chegada ao destino é feita no momento da \emph{inserção}
         na fila, não da remoção. Isso permite encerrar a busca imediatamente ao
         encontrar \texttt{S}, sem processar o restante da última camada.
@@ -218,23 +218,14 @@ A implementação foi realizada em Python. Alguns detalhes relevantes:
         \texttt{(r + dr) \% linhas} sem ajuste adicional.
 \end{itemize}
 
-O trecho principal da implementação é apresentado a seguir:
+O núcleo da implementação --- a função BFS --- é apresentado a seguir:
 
 \begin{lstlisting}[language=Python]
 MOVIMENTOS = [(-2,-1),(-2,1),(-1,-2),(-1,2),(1,-2),(1,2),(2,-1),(2,1)]
 
 def resolver(tabuleiro):
-    linhas = len(tabuleiro)
-    colunas = len(tabuleiro[0])
-
-    inicio = saida = None
-    for r in range(linhas):
-        for c in range(colunas):
-            if tabuleiro[r][c] == 'C':
-                inicio = (r, c)
-            elif tabuleiro[r][c] == 'S':
-                saida = (r, c)
-
+    linhas, colunas = len(tabuleiro), len(tabuleiro[0])
+    inicio, saida = encontrar_cs(tabuleiro)   # varre o tabuleiro uma vez
     if inicio == saida:
         return 0
 
