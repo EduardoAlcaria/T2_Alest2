@@ -63,10 +63,14 @@ def main():
         print("== O Cavalo Perdido - resultados ==\n")
         for caminho in sys.argv[1:]:
             rodar(ler_tabuleiro(caminho), caminho)
-    else:
+    elif not sys.stdin.isatty():
         tabuleiro = ler_stdin()
         resultado = resolver(tabuleiro)
         print(resultado if resultado != -1 else "sem solucao")
+    else:
+        print("Uso:")
+        print("  python cavalo_perdido.py arquivo1.txt [arquivo2.txt ...]")
+        print("  python cavalo_perdido.py < arquivo.txt")
 
 if __name__ == '__main__':
     main()
