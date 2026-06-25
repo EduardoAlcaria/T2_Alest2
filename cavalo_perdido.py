@@ -1,15 +1,16 @@
 from collections import deque
+import sys
 import time
 
 MOVIMENTOS = [(-2,-1),(-2,1),(-1,-2),(-1,2),(1,-2),(1,2),(2,-1),(2,1)]
 
 def resolver(tabuleiro):
     linhas = len(tabuleiro)
-    colunas = len(tabuleiro[0])
+    colunas = min(len(r) for r in tabuleiro)
 
     inicio = saida = None
     for r in range(linhas):
-        for c in range(colunas):
+        for c in range(len(tabuleiro[r])):
             if tabuleiro[r][c] == 'C':
                 inicio = (r, c)
             elif tabuleiro[r][c] == 'S':
@@ -37,28 +38,35 @@ def resolver(tabuleiro):
     return -1
 
 def ler_tabuleiro(caminho):
-    with open(caminho) as f:
-        return [linha.rstrip('\n') for linha in f if linha.strip()]
+    with open(caminho, encoding='utf-8-sig') as f:
+        return [linha.rstrip() for linha in f if linha.strip()]
+
+def ler_stdin():
+    linhas = []
+    for linha in sys.stdin:
+        linha = linha.replace('﻿', '').rstrip()
+        if linha.strip():
+            linhas.append(linha)
+    return linhas
+
+def rodar(tabuleiro, nome):
+    linhas, colunas = len(tabuleiro), len(tabuleiro[0])
+    t0 = time.perf_counter()
+    resultado = resolver(tabuleiro)
+    tempo = (time.perf_counter() - t0) * 1000
+    print(f'Tabuleiro {nome} ({linhas}x{colunas})')
+    print(f'  {"sem solucao" if resultado == -1 else str(resultado) + " movimentos"}')
+    print(f'  tempo: {tempo:.1f} ms\n')
 
 def main():
-    arquivos = ['020.txt', '060.txt', '120.txt', '200.txt', '300.txt', '400.txt', '500.txt']
-
-    print("== O Cavalo Perdido - resultados ==\n")
-
-    for nome in arquivos:
-        tabuleiro = ler_tabuleiro(f'CasosT2/{nome}')
-        linhas, colunas = len(tabuleiro), len(tabuleiro[0])
-
-        t0 = time.perf_counter()
+    if len(sys.argv) > 1:
+        print("== O Cavalo Perdido - resultados ==\n")
+        for caminho in sys.argv[1:]:
+            rodar(ler_tabuleiro(caminho), caminho)
+    else:
+        tabuleiro = ler_stdin()
         resultado = resolver(tabuleiro)
-        tempo = (time.perf_counter() - t0) * 1000
-
-        print(f'Tabuleiro {nome} ({linhas}x{colunas})')
-        if resultado == -1:
-            print('  sem solucao')
-        else:
-            print(f'  {resultado} movimentos')
-        print(f'  tempo: {tempo:.1f} ms\n')
+        print(resultado if resultado != -1 else "sem solucao")
 
 if __name__ == '__main__':
     main()
