@@ -225,7 +225,7 @@ MOVIMENTOS = [(-2,-1),(-2,1),(-1,-2),(-1,2),(1,-2),(1,2),(2,-1),(2,1)]
 
 def resolver(tabuleiro):
     linhas, colunas = len(tabuleiro), len(tabuleiro[0])
-    inicio, saida = encontrar_cs(tabuleiro)   # varre o tabuleiro uma vez
+    inicio, saida = encontrar_cs(tabuleiro)
     if inicio == saida:
         return 0
 
